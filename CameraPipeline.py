@@ -5,7 +5,7 @@ import time
 import cv2
 import depthai as dai
 
-scaleFactor = 4     # Scale factor for the image to reduce processing time
+scaleFactor = 1     # Scale factor for the image to reduce processing time
 
 
 
@@ -23,7 +23,7 @@ class CameraPipeline:
     # useDepth: bool             # True: use depth if available, False: use RGB only
     # nnFile: str                # The neural network config file.  None if no NN is to be used
 
-    def __init__(self, devInfo : dai.DeviceInfo, useDepth, nnFile):
+    def __init__(self, devInfo : dai.DeviceInfo, useDepth : bool, nnFile : str):
         device: dai.Device = dai.Device(devInfo)
         self.devInfo = devInfo
         self.hasDepth = useDepth and len(device.getConnectedCameras()) > 1
@@ -162,6 +162,8 @@ class CameraPipeline:
             spatialDetectionNetwork.setDepthUpperThreshold(5000)
 
         return spatialDetectionNetwork
+    
+
 
     def buildPipeline(self, spatialDetectionNetwork):
 
@@ -234,44 +236,56 @@ class CameraPipeline:
 
             self.monoLeft.out.link(self.stereo.left)
             self.monoRight.out.link(self.stereo.right)
-
-            self.camRgb.preview.link(spatialDetectionNetwork.input)
-            spatialDetectionNetwork.passthrough.link(self.xoutRgb.input)
-
-            spatialDetectionNetwork.out.link(self.xoutNN.input)
-
-            self.stereo.depth.link(spatialDetectionNetwork.inputDepth)
+            sizeForIntrinsic = self.camRgb.getIspSize()
 
 
-            if scaleFactor == 1:
-                spatialDetectionNetwork.passthroughDepth.link(self.xoutDepth.input)
-                self.camRgb.isp.link(self.xoutIsp.input)
+            if spatialDetectionNetwork is not None:
+                self.camRgb.preview.link(spatialDetectionNetwork.input)
+                self.camRgb.isp.link(self.xoutRgb.input)
+
+                spatialDetectionNetwork.out.link(self.xoutNN.input)
+
+                self.stereo.depth.link(spatialDetectionNetwork.inputDepth)
+
+                if scaleFactor == 1:
+                    spatialDetectionNetwork.passthroughDepth.link(self.xoutDepth.input)
+                    self.camRgb.isp.link(self.xoutIsp.input)
+                else:
+                    self.camRgb.isp.link(self.ispScaleNode.inputImage)
+                    self.ispScaleNode.out.link(self.xoutIsp.input)
+                    spatialDetectionNetwork.passthroughDepth.link(self.depthScaleNode.inputImage)
+                    self.depthScaleNode.out.link(self.xoutDepth.input)
             else:
-                self.camRgb.isp.link(self.ispScaleNode.inputImage)
-                self.ispScaleNode.out.link(self.xoutIsp.input)
-                spatialDetectionNetwork.passthroughDepth.link(self.depthScaleNode.inputImage)
-                self.depthScaleNode.out.link(self.xoutDepth.input)
+                self.camRgb.isp.link(self.xoutRgb.input)
+                sizeForIntrinsic = self.camRgb.getIspSize()
+                self.stereo.depth.link(self.xoutDepth.input)
+                if scaleFactor == 1:
+                    self.camRgb.isp.link(self.xoutIsp.input)
+                else:
+                    self.camRgb.isp.link(self.ispScaleNode.inputImage)
+                    self.ispScaleNode.out.link(self.xoutIsp.input)
 
             self.xoutIsp.setStreamName("isp")
         else:
+            self.camRgb.isp.link(self.xoutRgb.input) # If not using a NN then link the camera output directly to the xLink rgb output node
+            sizeForIntrinsic = self.camRgb.getIspSize()
             if spatialDetectionNetwork is not None:
                 self.camRgb.preview.link(spatialDetectionNetwork.input) # Link camera's preview output to the input of the NN node
                 spatialDetectionNetwork.out.link(self.xoutNN.input) # Link NN output to the xLink detections output node
-                spatialDetectionNetwork.passthrough.link(self.xoutRgb.input) # Passthrough the camera image to be displayed to the rgb xLink node
-                sizeForIntrinsic = self.camRgb.getPreviewSize()
-
-            else:
-                self.camRgb.isp.link(self.xoutRgb.input) # If not using a NN then link the camera output directly to the xLink rgb output node
-                sizeForIntrinsic = self.CamRgb.getIspSize()
 
         self.device = dai.Device(self.pipeline, self.devInfo)
 
-        # self.cameraIntrinsics = self.device.readCalibration().getCameraIntrinsics(dai.CameraBoardSocket.CAM_A, 1280, 720)
         self.cameraIntrinsics = self.device.readCalibration().getCameraIntrinsics(dai.CameraBoardSocket.CAM_A, sizeForIntrinsic[0], sizeForIntrinsic[1])
-        # self.xyzzy = self.device.readCalibration().getCameraIntrinsics(dai.CameraBoardSocket.CAM_A)
         
         return
     
+
+    def serializePipeline(self):
+        serialized = self.pipeline.serializeToJson()
+
+        with open("pipeline_config.json", "w") as f:
+            json.dump(serialized, f, indent=4)
+        return
 
     def startPipeline(self):
 
@@ -337,18 +351,17 @@ class CameraPipeline:
                         self.frame = q.get().getCvFrame()
                     case "detectionNN":
                         self.detections = q.get().detections
-                        now = time.time_ns() / 1.0e9
-                        self.fps = int(1/(now - self.lastFrameTime))
-                        self.lastFrameTime = now
-
-
-
-        if not anyChanges:
-            return None
         
+        now = time.time_ns() / 1.0e9
+        self.fps = int(1/(now - self.lastFrameTime))
+        self.lastFrameTime = now
+
+
+
         if depthChanged:
             self.depthFrameColor = cv2.normalize(self.depthFrame, None, 255, 0, cv2.NORM_MINMAX, cv2.CV_8UC1)
             self.depthFrameColor = cv2.equalizeHist(self.depthFrameColor)
             self.depthFrameColor = cv2.applyColorMap(self.depthFrameColor, cv2.COLORMAP_RAINBOW)
 
-           
+        return anyChanges
+    

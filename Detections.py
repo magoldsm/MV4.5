@@ -19,7 +19,7 @@ class Detections:
         self.LABELS = LABELS
 
 
-    def ProcessOak1Detections(self, detections, frame, fps):
+    def ProcessOak1Detections(self, detections, frame):
         height = frame.shape[0]
         width = frame.shape[1]
 
@@ -68,9 +68,6 @@ class Detections:
             objects.append({"objectLabel": self.LABELS[detection.label], "x": cX,
                             "y": cY, "z": R,
                             "confidence": round(detection.confidence, 2)})
-
-        cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
-                    (255, 255, 255))
 
         return objects                
 

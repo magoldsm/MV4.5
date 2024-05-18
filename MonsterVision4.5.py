@@ -4,7 +4,7 @@ import json
 import cv2
 import depthai as dai
 import contextlib
-import CameraPipeline as cp
+import CameraPipeline as capPipe
 from Detections import Detections
 from AprilTag5 import AprilTag
 
@@ -59,15 +59,34 @@ with contextlib.ExitStack() as stack:
 
         cameraIntrinsics = printDeviceInfo(deviceInfo)
         mxId = deviceInfo.getMxId()
+
+        # In this sample code, we connect to every camera we find
+
         print("===Connected to ", mxId)
 
         # Here we can customize the NN being used on the camera
         # You can have different NN's on each camera (or none)
 
-        # cam1 = cp.CameraPipeline(deviceInfo, True, "/boot/nn.json")
-        cam1 = cp.CameraPipeline(deviceInfo, False, "/boot/nn.json")
+        # Even if the camera supports depth, you can force it to not use depth
+
+        # cam1 = capPipe.CameraPipeline(deviceInfo, useDepth=True, nnFile="/boot/nn.json")
+        cam1 = capPipe.CameraPipeline(deviceInfo, useDepth=False, nnFile=None)
+
+        # This is where the camera is set up and the pipeline is built
+        # First, create the Spatial Detection Network (SDN) object
+        
         sdn = cam1.setupSDN()
+
+        # Now build the pipeline
+
         cam1.buildPipeline(sdn)
+
+        # Serialize the pipeline
+
+        cam1.serializePipeline()
+
+        # Start the pipeline
+
         cam1.startPipeline()
 
         # Either of the following can be set to None if not needed for a particular camera
@@ -75,23 +94,47 @@ with contextlib.ExitStack() as stack:
         detector = Detections(cam1.bbfraction, cam1.LABELS)
         tagDetector = AprilTag(tagFamily, tagSize, cam1.cameraIntrinsics)
 
+        # Add the camera to the list of cameras, along with the detectors, etc.
+
         oakCameras.append((cam1, mxId, detector, tagDetector))
 
 
     while True:
-        cam : cp
+        cam : capPipe
+
+        # Loop through all the cameras.  For each camera, process the next frame
+
         for (cam, mxId, detector, tagDetector) in oakCameras:
-            cam.processNextFrame()
-            if detector is not None and cam.detections is not None and len(cam.detections) != 0:
-                objects = detector.processDetections(cam.detections, cam.frame, cam.depthFrameColor, cam.fps)
-            if tagDetector is not None and cam.frame is not None:
-                tagDetector.detect(cam.frame)
-            if cam.frame is not None:
-                cv2.imshow(mxId + " rgb", cam.frame)
-            # if cam.ispFrame is not None:
-            #     cv2.imshow(mxId + " ISP", cam.ispFrame) 
-            # if cam.depthFrameColor is not None:
-            #     cv2.imshow(mxId + " depth", cam.depthFrameColor)
+
+            # Process the next frame.  If anything new arrived, processNextFrame will return True
+
+            if cam.processNextFrame():
+
+                # If the camera has a detection object, process the detections
+
+                if detector is not None and cam.detections is not None and len(cam.detections) != 0:
+                    objects = detector.processDetections(cam.detections, cam.frame, cam.depthFrameColor)
+
+                # If the camera has an AprilTag object, detect any AprilTags that might be seen
+
+                if tagDetector is not None and cam.frame is not None:
+                    tagDetector.detect(cam.frame, cam.depthFrame)
+
+                    cv2.putText(cam.frame, "fps: {:.2f}".format(cam.fps), (2, cam.frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
+                    (255, 255, 255))
+
+
+
+                # Display the images.  This is just for debugging
+
+                if cam.frame is not None:
+                    cv2.imshow(mxId + " rgb", cam.frame)
+                # if cam.ispFrame is not None:
+                #     cv2.imshow(mxId + " ISP", cam.ispFrame) 
+                # if cam.depthFrameColor is not None:
+                #     cv2.imshow(mxId + " depth", cam.depthFrameColor)
+
+        # This won't work in the final version, but it's a way to exit the program
 
         if cv2.waitKey(1) == ord('q'):
             break

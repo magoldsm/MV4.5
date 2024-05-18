@@ -1,11 +1,15 @@
 import numpy as np
 import robotpy_apriltag
 import cv2
+import wpimath.geometry as geo
+
+METERS_TO_INCHES = 39.3701
 
 class AprilTag:
     def __init__(self, tagFamily, tagSize, cameraIntrinsics):
         self.detector = robotpy_apriltag.AprilTagDetector()
         self.detector.addFamily(tagFamily)  
+        self.tagFamily = tagFamily
 
         self.haveIntrinsics = cameraIntrinsics is not None
         self.estimator = None
@@ -23,7 +27,7 @@ class AprilTag:
             self.estimator = robotpy_apriltag.AprilTagPoseEstimator(poseEstConfig) 
 
 
-    def detect(self, image):
+    def detect(self, image, depthFrame):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         detections = self.detector.detect(gray)
 
@@ -39,9 +43,35 @@ class AprilTag:
             center = detection.getCenter()            
             cv2.circle(image, (int(center.x), int(center.y)), 5, (0, 255, 0), -1)
 
+            wd = abs(corners[6]-corners[0])
+            ht = abs(corners[3]-corners[1])
+
+            lblX = int(center.x - wd/2)
+            lblY = int(center.y - ht/2)
+            # draw the tag family on the image
+            # tagID= '{}: {}'.format(r.tag_family.decode("utf-8"), r.tag_id)
+            tagID = self.tagFamily
+            color = (255, 0, 0)
+
+            if lblY < 75:
+                lblY = 75
+            if lblY > image.shape[0]:
+                lblY = image.shape[0]
+
             if (self.haveIntrinsics):
                 pose = self.estimator.estimate(detection)
                 rot = pose.rotation()
 
-                print(f"X: {pose.X()}, Y: {pose.Y()}, Z: {pose.Z()}, XR: {rot.X()}, YR: {rot.Y()}, ZR: {rot.Z()}")
+            units = "m"
+
+            cv2.putText(image, tagID, (lblX, lblY - 75), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(image, f" X: {round(pose.X(), 1)} {units}", (lblX, lblY - 60), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(image, f" Y: {round(pose.Y(), 1)} {units}", (lblX, lblY - 45), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(image, f" Z: {round(pose.Z(), 1)} {units}", (lblX, lblY - 30), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(image, f"XA: {round(rot.x_degrees, 1)} deg", (lblX, lblY - 15), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(image, f"YA: {round(rot.y_degrees, 1)} deg", (lblX, lblY + 0), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(image, f"ZA: {round(rot.z_degrees, 1)} deg", (lblX, lblY + 15), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            # print(f"X: {pose.X()*METERS_TO_INCHES}, Y: {pose.Y()*METERS_TO_INCHES}, Z: {pose.Z()*METERS_TO_INCHES}, XR: {rot.x_degrees}, YR: {rot.y_degrees}, ZR: {rot.z_degrees}")
         return detections
+
+
