@@ -19,11 +19,14 @@ class CameraPipeline:
     openvinoVersionMap[""] = dai.OpenVINO.DEFAULT_VERSION
 
     
+    # devInfo: dai.DeviceInfo    # The device info object
+    # useDepth: bool             # True: use depth if available, False: use RGB only
+    # nnFile: str                # The neural network config file.  None if no NN is to be used
 
-    def __init__(self, devInfo : dai.DeviceInfo, nnFile):
+    def __init__(self, devInfo : dai.DeviceInfo, useDepth, nnFile):
         device: dai.Device = dai.Device(devInfo)
         self.devInfo = devInfo
-        self.hasDepth = len(device.getConnectedCameras()) > 1
+        self.hasDepth = useDepth and len(device.getConnectedCameras()) > 1
         self.hasLaser = len(device.getIrDrivers()) > 0
         
         # We might not have a mono camera, but this cannot hurt
@@ -44,6 +47,7 @@ class CameraPipeline:
         self.PREVIEW_HEIGHT = 200
 
         self.NN_FILE = nnFile
+        self.LABELS = None
 
         self.pipeline = dai.Pipeline()
 
@@ -53,6 +57,8 @@ class CameraPipeline:
         self.frame = None
         self.detections = None
         self.depthFrameColor = None
+        self.cameraIntrinsics = None
+        self.calibData = None
 
         return
     
@@ -171,6 +177,7 @@ class CameraPipeline:
 
         self.camRgb = self.pipeline.create(dai.node.ColorCamera)
         self.xoutRgb = self.pipeline.create(dai.node.XLinkOut)
+        self.xoutRgb.setStreamName("rgb")
 
         if self.hasDepth:
             self.monoLeft = self.pipeline.create(dai.node.MonoCamera)
@@ -182,8 +189,6 @@ class CameraPipeline:
             self.xoutDepth = self.pipeline.create(dai.node.XLinkOut)
             self.xoutIsp = self.pipeline.create(dai.node.XLinkOut)
             self.xoutDepth.setStreamName("depth")
-
-        self.xoutRgb.setStreamName("rgb")
 
         if spatialDetectionNetwork is not None:
             self.xoutNN = self.pipeline.create(dai.node.XLinkOut)
@@ -253,14 +258,22 @@ class CameraPipeline:
                 self.camRgb.preview.link(spatialDetectionNetwork.input) # Link camera's preview output to the input of the NN node
                 spatialDetectionNetwork.out.link(self.xoutNN.input) # Link NN output to the xLink detections output node
                 spatialDetectionNetwork.passthrough.link(self.xoutRgb.input) # Passthrough the camera image to be displayed to the rgb xLink node
+                sizeForIntrinsic = self.camRgb.getPreviewSize()
+
             else:
                 self.camRgb.isp.link(self.xoutRgb.input) # If not using a NN then link the camera output directly to the xLink rgb output node
+                sizeForIntrinsic = self.CamRgb.getIspSize()
 
+        self.device = dai.Device(self.pipeline, self.devInfo)
+
+        # self.cameraIntrinsics = self.device.readCalibration().getCameraIntrinsics(dai.CameraBoardSocket.CAM_A, 1280, 720)
+        self.cameraIntrinsics = self.device.readCalibration().getCameraIntrinsics(dai.CameraBoardSocket.CAM_A, sizeForIntrinsic[0], sizeForIntrinsic[1])
+        # self.xyzzy = self.device.readCalibration().getCameraIntrinsics(dai.CameraBoardSocket.CAM_A)
+        
         return
     
 
     def startPipeline(self):
-        self.device = dai.Device(self.pipeline, self.devInfo)
 
         self.queues = []
         self.lastFrameTime = time.time_ns() / 1.0e9
