@@ -4,9 +4,12 @@ import json
 import cv2
 import depthai as dai
 import contextlib
+
+import robotpy_apriltag
 import CameraPipeline as capPipe
 from Detections import Detections
 from AprilTag5 import AprilTag
+from FRC import FRC
 
 # Stuff that may change from year to year
 # Ideally, this would be in a config file
@@ -48,6 +51,7 @@ def printDeviceInfo(devInfo: dai.DeviceInfo):
 
 with contextlib.ExitStack() as stack:
     deviceInfos = dai.Device.getAllAvailableDevices()
+    frc = FRC()
 
     oakCameras = []
 
@@ -68,9 +72,10 @@ with contextlib.ExitStack() as stack:
         # You can have different NN's on each camera (or none)
 
         # Even if the camera supports depth, you can force it to not use depth
+               
+        # TODO for now, we name the camera by its mxId
 
-        # cam1 = capPipe.CameraPipeline(deviceInfo, useDepth=True, nnFile="/boot/nn.json")
-        cam1 = capPipe.CameraPipeline(deviceInfo, useDepth=False, nnFile=None)
+        cam1 = capPipe.CameraPipeline(mxId, deviceInfo, useDepth=True, nnFile="/boot/nn.json")
 
         # This is where the camera is set up and the pipeline is built
         # First, create the Spatial Detection Network (SDN) object
@@ -83,7 +88,7 @@ with contextlib.ExitStack() as stack:
 
         # Serialize the pipeline
 
-        cam1.serializePipeline()
+        # cam1.serializePipeline()
 
         # Start the pipeline
 
@@ -92,7 +97,7 @@ with contextlib.ExitStack() as stack:
         # Either of the following can be set to None if not needed for a particular camera
 
         detector = Detections(cam1.bbfraction, cam1.LABELS)
-        tagDetector = AprilTag(tagFamily, tagSize, cam1.cameraIntrinsics)
+        tagDetector = AprilTag(tagFamily, tagSize, cam1.cameraIntrinsics, robotpy_apriltag.AprilTagField.k2024Crescendo)
 
         # Add the camera to the list of cameras, along with the detectors, etc.
 
@@ -123,16 +128,9 @@ with contextlib.ExitStack() as stack:
                     cv2.putText(cam.frame, "fps: {:.2f}".format(cam.fps), (2, cam.frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
                     (255, 255, 255))
 
-
-
-                # Display the images.  This is just for debugging
-
-                if cam.frame is not None:
-                    cv2.imshow(mxId + " rgb", cam.frame)
-                # if cam.ispFrame is not None:
-                #     cv2.imshow(mxId + " ISP", cam.ispFrame) 
-                # if cam.depthFrameColor is not None:
-                #     cv2.imshow(mxId + " depth", cam.depthFrameColor)
+                # Display the results to the GUI and push frames to the camera server
+                
+                frc.displayCamResults(cam)
 
         # This won't work in the final version, but it's a way to exit the program
 

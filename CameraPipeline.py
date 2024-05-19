@@ -23,7 +23,8 @@ class CameraPipeline:
     # useDepth: bool             # True: use depth if available, False: use RGB only
     # nnFile: str                # The neural network config file.  None if no NN is to be used
 
-    def __init__(self, devInfo : dai.DeviceInfo, useDepth : bool, nnFile : str):
+    def __init__(self, name: str, devInfo : dai.DeviceInfo, useDepth : bool, nnFile : str):
+        self.name = name
         device: dai.Device = dai.Device(devInfo)
         self.devInfo = devInfo
         self.hasDepth = useDepth and len(device.getConnectedCameras()) > 1

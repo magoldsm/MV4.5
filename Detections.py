@@ -72,14 +72,14 @@ class Detections:
         return objects                
 
 
-    def processDetections(self, detections, frame, depthFrameColor, fps):
+    def processDetections(self, detections, frame, depthFrameColor):
 
         if frame is None:
             return
         
         # If no depth info, must be an OAK-1
         if depthFrameColor is None:
-            return self.ProcessOak1Detections(detections, frame, fps)
+            return self.ProcessOak1Detections(detections, frame)
         
         # If the frame is available, draw bounding boxes on it and show the frame
         height = frame.shape[0]
@@ -149,7 +149,7 @@ class Detections:
                             "y": y, "z": z,
                             "confidence": round(detection.confidence, 2)})
 
-        cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
-                    (255, 255, 255))
+        # cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
+        #             (255, 255, 255))
 
         return objects            
