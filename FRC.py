@@ -33,7 +33,7 @@ MV_FILE = "/boot/mv.json"       # MonsterVision Configuration file
 # TODO - move to config file
 
 CAMERA_FPS = 25
-DESIRED_FPS = 10		# seem to actually get 1/2 this.  Don't know why.....; THIS IS BECAUSE OF MATH BELOW MEANS THAT YOU GET 25  % 10 = 5
+DS_SUBSAMPLING = 5
 PREVIEW_WIDTH = 200
 PREVIEW_HEIGHT = 200
 DS_SCALE = 0.25         # Amount to scale down the composite image before sending to DS
