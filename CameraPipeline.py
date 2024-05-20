@@ -32,7 +32,7 @@ class CameraPipeline:
         self.hasLaser = len(device.getIrDrivers()) > 0
         
         # TODO move these to config file
-        
+
         # We might not have a mono camera, but this cannot hurt
         self.monoResolution = dai.MonoCameraProperties.SensorResolution.THE_480_P
         self.monoWidth = 1280
@@ -165,7 +165,7 @@ class CameraPipeline:
     
 
 
-    def buildPipeline(self, spatialDetectionNetwork):
+    def buildPipeline(self, spatialDetectionNetwork, invert : bool = False):
 
         # Linking      
         try:
@@ -205,10 +205,10 @@ class CameraPipeline:
         self.camRgb.setFps(cm.mvConfig.CAMERA_FPS)
         self.camRgb.setIspScale(self.ispScale[0], self.ispScale[1])
 
-        # ***TODO*** Here is where we invert the camera image, if needed.
-        # Need to determine how to pass in a flag for this
-
-        # self.camRgb.setImageOrientation(dai.CameraImageOrientation.NORMAL) # Got changed back to normal
+        if invert:
+            self.camRgb.setImageOrientation(dai.CameraImageOrientation.ROTATE_180_DEG) 
+        else:
+            self.camRgb.setImageOrientation(dai.CameraImageOrientation.NORMAL) 
 
         print("Camera FPS: {}".format(self.camRgb.getFps()))
 

@@ -1,7 +1,7 @@
 {
     "cameras" : [
-        { "mxid" : "18443010E1176A1200", "name" : "Front" },
-        { "mxid" : "18443010A162011300", "name" : "Rear" }
+        { "mxid" : "18443010E1176A1200", "name" : "Front", "invert" : false },
+        { "mxid" : "18443010A162011300", "name" : "Rear", "invert" : false }
     ],
     "tagFamily" : "tag36h11",
     "tagSize" : 0.1651,

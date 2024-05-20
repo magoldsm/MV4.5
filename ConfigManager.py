@@ -127,10 +127,10 @@ class MVConfig(ConfigManager):
             self.PREVIEW_HEIGHT = self.__PREVIEW_HEIGHT.value
             self.DS_SCALE = self.__DS_SCALE.value
 
-    def getCameraName(self, mxid):
+    def getCamera(self, mxid) -> dict:
         for cam in self.cameras:
             if cam['mxid'] == mxid:
-                return cam['name']
+                return cam
         return None
     
 
