@@ -33,10 +33,10 @@ MV_FILE = "/boot/mv.json"       # MonsterVision Configuration file
 # TODO - move to config file
 
 CAMERA_FPS = 25
-DS_SUBSAMPLING = 5
+DS_SUBSAMPLING = 4
 PREVIEW_WIDTH = 200
 PREVIEW_HEIGHT = 200
-DS_SCALE = 0.25         # Amount to scale down the composite image before sending to DS
+DS_SCALE = 0.5         # Amount to scale down the composite image before sending to DS
 
 def extract_value(j, key, default=None, message=None):
     try:
