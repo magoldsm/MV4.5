@@ -33,6 +33,7 @@ class AprilTag:
     def detect(self, image, depthFrame):
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         detections = self.detector.detect(gray)
+        objects = []
 
         for detection in detections:
             corners = (0, 0, 0, 0, 0, 0, 0, 0)
@@ -75,6 +76,12 @@ class AprilTag:
             cv2.putText(image, f"YA: {round(rot.y_degrees, 1)} deg", (lblX, lblY + 0), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
             cv2.putText(image, f"ZA: {round(rot.z_degrees, 1)} deg", (lblX, lblY + 15), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
             # print(f"X: {pose.X()*METERS_TO_INCHES}, Y: {pose.Y()*METERS_TO_INCHES}, Z: {pose.Z()*METERS_TO_INCHES}, XR: {rot.x_degrees}, YR: {rot.y_degrees}, ZR: {rot.z_degrees}")
-        return detections
+
+            objects.append({"objectLabel": tagID + ": " + str(detection.getId()), "x": round(pose.X()*METERS_TO_INCHES, 1), "y": round(pose.Y()*METERS_TO_INCHES, 1), "z": round(pose.Z()*METERS_TO_INCHES, 1),
+                            "confidence": 1.0, "rotation": {"x": round(rot.x_degrees), "y": round(rot.y_degrees), "z": round(rot.z_degrees)}})
+            # objects.append({"objectLabel": tagID, "x": pose.X()*METERS_TO_INCHES, "y": pose.Y()*METERS_TO_INCHES, "z": pose.Z()*METERS_TO_INCHES,
+            #                 "confidence": 1.0, "rotation": {"x": rot.x_degrees, "y": rot.y_degrees, "z": rot.z_degrees}})
+            
+        return objects
 
 

@@ -54,7 +54,7 @@ class CameraPipeline:
 
         self.frame = None
         self.depthFrame = None
-        self.ispFrame = None
+        # self.ispFrame = None
         self.frame = None
         self.detections = None
         self.depthFrameColor = None
@@ -187,10 +187,10 @@ class CameraPipeline:
             self.monoRight = self.pipeline.create(dai.node.MonoCamera)
             self.stereo = self.pipeline.create(dai.node.StereoDepth)
             if scaleFactor != 1:
-                self.ispScaleNode = self.pipeline.create(dai.node.ImageManip)
+                # self.ispScaleNode = self.pipeline.create(dai.node.ImageManip)
                 self.depthScaleNode = self.pipeline.create(dai.node.ImageManip)
             self.xoutDepth = self.pipeline.create(dai.node.XLinkOut)
-            self.xoutIsp = self.pipeline.create(dai.node.XLinkOut)
+            # self.xoutIsp = self.pipeline.create(dai.node.XLinkOut)
             self.xoutDepth.setStreamName("depth")
 
         if spatialDetectionNetwork is not None:
@@ -250,23 +250,23 @@ class CameraPipeline:
 
                 if scaleFactor == 1:
                     spatialDetectionNetwork.passthroughDepth.link(self.xoutDepth.input)
-                    self.camRgb.isp.link(self.xoutIsp.input)
+                    # self.camRgb.isp.link(self.xoutIsp.input)
                 else:
-                    self.camRgb.isp.link(self.ispScaleNode.inputImage)
-                    self.ispScaleNode.out.link(self.xoutIsp.input)
+                    # self.camRgb.isp.link(self.ispScaleNode.inputImage)
+                    # self.ispScaleNode.out.link(self.xoutIsp.input)
                     spatialDetectionNetwork.passthroughDepth.link(self.depthScaleNode.inputImage)
                     self.depthScaleNode.out.link(self.xoutDepth.input)
             else:
                 self.camRgb.isp.link(self.xoutRgb.input)
                 sizeForIntrinsic = self.camRgb.getIspSize()
                 self.stereo.depth.link(self.xoutDepth.input)
-                if scaleFactor == 1:
-                    self.camRgb.isp.link(self.xoutIsp.input)
-                else:
-                    self.camRgb.isp.link(self.ispScaleNode.inputImage)
-                    self.ispScaleNode.out.link(self.xoutIsp.input)
+                # if scaleFactor == 1:
+                #     self.camRgb.isp.link(self.xoutIsp.input)
+                # else:
+                #     self.camRgb.isp.link(self.ispScaleNode.inputImage)
+                #     self.ispScaleNode.out.link(self.xoutIsp.input)
 
-            self.xoutIsp.setStreamName("isp")
+            # self.xoutIsp.setStreamName("isp")
         else:
             self.camRgb.isp.link(self.xoutRgb.input) # If not using a NN then link the camera output directly to the xLink rgb output node
             sizeForIntrinsic = self.camRgb.getIspSize()
@@ -319,8 +319,8 @@ class CameraPipeline:
             depthQueue = self.device.getOutputQueue(name="depth", maxSize=4, blocking=False)
             self.queues.append((depthQueue, "depth"))
 
-            ispQueue = self.device.getOutputQueue(name="isp", maxSize=4, blocking=False)
-            self.queues.append((ispQueue, "isp"))
+            # ispQueue = self.device.getOutputQueue(name="isp", maxSize=4, blocking=False)
+            # self.queues.append((ispQueue, "isp"))
 
             if self.hasLaser:
                 if not self.device.setIrLaserDotProjectorBrightness(self.LaserDotProjectorCurrent):
@@ -346,8 +346,8 @@ class CameraPipeline:
                     case "depth":
                         self.depthFrame = q.get().getFrame()
                         depthChanged = True
-                    case "isp":
-                        self.ispFrame = q.get().getCvFrame()
+                    # case "isp":
+                    #     self.ispFrame = q.get().getCvFrame()
                     case "rgb":
                         self.frame = q.get().getCvFrame()
                     case "detectionNN":

@@ -23,13 +23,17 @@ try:
 except ImportError:
     cscoreAvailable = False
 
-# Set camera FPS
+
+# TODO - move to config file
+
 CAMERA_FPS = 25
 DESIRED_FPS = 10		# seem to actually get 1/2 this.  Don't know why.....; THIS IS BECAUSE OF MATH BELOW MEANS THAT YOU GET 25  % 10 = 5
-
+PREVIEW_WIDTH = 200
+PREVIEW_HEIGHT = 200
+DS_SCALE = 0.25         # Amount to scale down the composite image before sending to DS
 
 class FRC:
-    ROMI_FILE = "/boot/romi.json"   # idk
+    ROMI_FILE = "/boot/romi.json"   # used when running on a Romi robot
     FRC_FILE = "/boot/frc.json"     # Some camera settings incuding laser power
     NN_FILE = "/boot/nn.json"       # NN config file
 
@@ -77,6 +81,13 @@ class FRC:
             self.sd = self.ntinst.getTable("MonsterVision")
         else:
             self.sd = NetworkTables.getTable("MonsterVision") # Get the MonsterVision NT; Maybe creates it
+
+        # TODO perhaps width should be function of # of cameras
+
+        if cscoreAvailable:
+            # self.cs = CameraServer.getInstance()
+            CameraServer.enableLogging()
+            self.csoutput = CameraServer.putVideo("MonsterVision", PREVIEW_WIDTH, PREVIEW_HEIGHT) # TODOnot        
 
 
     # Return True if we're running on Romi.  False if we're a coprocessor on a big 'bot
@@ -155,9 +166,11 @@ class FRC:
         return True
     
     # NT writing for NN detections and AprilTags
-    def writeObjectsToNetworkTable(self, jsonObjects, cam):
-        self.sd.putString("ObjectTracker-" + cam, jsonObjects)
-        self.ntinst.flush() # Puts all values onto table immediately
+    def writeObjectsToNetworkTable(self, objects, cam):
+        jasonString = json.dumps(objects)
+        res = self.sd.putString("ObjectTracker-" + cam.name, jasonString)
+        res = self.ntinst.flush() # Puts all values onto table immediately
+        res = True
 
 
     def displayCamResults(self, cam):
@@ -166,6 +179,28 @@ class FRC:
                 cv2.imshow(cam.name + " rgb", cam.frame)
             # if cam.ispFrame is not None:
             #     cv2.imshow(cam.name + " ISP", cam.ispFrame) 
-            # if cam.depthFrameColor is not None:
-            #     cv2.imshow(cam.name + " depth", cam.depthFrameColor)
+            if cam.depthFrameColor is not None:
+                cv2.imshow(cam.name + " depth", cam.depthFrameColor)
 
+
+    # Composite all camera images into a single frame for DS display
+
+    def sendResultsToDS(self, cams):
+        # First, enumerate the images
+
+        if cscoreAvailable:
+            images = []
+            for camTuple in cams:
+                cam = camTuple[0]
+                if cam.frame is not None:
+                    images.append(cam.frame)
+
+            if len(images) > 0:
+                if len(images) > 1:
+                    img = cv2.hconcat(images)
+                else:
+                    img = images[0]
+
+                dim = (int(img.shape[1] * DS_SCALE) , int(img.shape[0] * DS_SCALE))
+                resized = cv2.resize(img, dim)
+                self.csoutput.putFrame(resized)
