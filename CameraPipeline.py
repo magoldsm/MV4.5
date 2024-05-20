@@ -4,6 +4,7 @@ import sys
 import time
 import cv2
 import depthai as dai
+import ConfigManager as cm
 
 scaleFactor = 1     # Scale factor for the image to reduce processing time
 
@@ -30,8 +31,10 @@ class CameraPipeline:
         self.hasDepth = useDepth and len(device.getConnectedCameras()) > 1
         self.hasLaser = len(device.getIrDrivers()) > 0
         
+        # TODO move these to config file
+        
         # We might not have a mono camera, but this cannot hurt
-        self.monoResolution = dai.MonoCameraProperties.SensorResolution.THE_720_P
+        self.monoResolution = dai.MonoCameraProperties.SensorResolution.THE_480_P
         self.monoWidth = 1280
         self.monoHeight = 720
 
@@ -42,10 +45,6 @@ class CameraPipeline:
         self.ispScale = (2, 3)
 
         self.bbfraction = 0.2 # The size of the inner bounding box as a fraction of the original
-
-        self.CAMERA_FPS = 50
-        self.PREVIEW_WIDTH = 200
-        self.PREVIEW_HEIGHT = 200
 
         self.NN_FILE = nnFile
         self.LABELS = None
@@ -203,7 +202,7 @@ class CameraPipeline:
         self.camRgb.setResolution(self.rgbResolution)
         self.camRgb.setInterleaved(False)
         self.camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        self.camRgb.setFps(self.CAMERA_FPS)
+        self.camRgb.setFps(cm.mvConfig.CAMERA_FPS)
         self.camRgb.setIspScale(self.ispScale[0], self.ispScale[1])
 
         # ***TODO*** Here is where we invert the camera image, if needed.

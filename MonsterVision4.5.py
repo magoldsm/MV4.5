@@ -10,13 +10,7 @@ import CameraPipeline as capPipe
 from Detections import Detections
 from AprilTag5 import AprilTag
 from FRC import FRC
-import ConfigManager
-
-# Stuff that may change from year to year
-# Ideally, this would be in a config file
-
-tagFamily = "tag36h11"
-tagSize = 0.1651            # 6.5 inches
+import ConfigManager as cm
 
 
 # Prints "interesting" information about the camera
@@ -51,8 +45,8 @@ def printDeviceInfo(devInfo: dai.DeviceInfo):
 
 
 with contextlib.ExitStack() as stack:
-    deviceInfos = dai.Device.getAllAvailableDevices()
     frc = FRC()
+    deviceInfos = dai.Device.getAllAvailableDevices()
 
     oakCameras = []
 
@@ -62,8 +56,8 @@ with contextlib.ExitStack() as stack:
     for deviceInfo in deviceInfos:
         deviceInfo: dai.DeviceInfo
 
-        cameraIntrinsics = printDeviceInfo(deviceInfo)
         mxId = deviceInfo.getMxId()
+        cameraIntrinsics = printDeviceInfo(deviceInfo)
 
         # In this sample code, we connect to every camera we find
 
@@ -74,9 +68,7 @@ with contextlib.ExitStack() as stack:
 
         # Even if the camera supports depth, you can force it to not use depth
                
-        # TODO for now, we name the camera by its mxId
-
-        cam1 = capPipe.CameraPipeline(mxId, deviceInfo, useDepth=True, nnFile="/boot/nn.json")
+        cam1 = capPipe.CameraPipeline(cm.mvConfig.getCameraName(mxId), deviceInfo, useDepth=True, nnFile="/boot/nn.json")
 
         # This is where the camera is set up and the pipeline is built
         # First, create the Spatial Detection Network (SDN) object
@@ -98,7 +90,7 @@ with contextlib.ExitStack() as stack:
         # Either of the following can be set to None if not needed for a particular camera
 
         detector = Detections(cam1.bbfraction, cam1.LABELS)
-        tagDetector = AprilTag(tagFamily, tagSize, cam1.cameraIntrinsics, robotpy_apriltag.AprilTagField.k2024Crescendo)
+        tagDetector = AprilTag(cm.mvConfig.tagFamily, cm.mvConfig.tagSize, cam1.cameraIntrinsics, robotpy_apriltag.AprilTagField.k2024Crescendo)
 
         # Add the camera to the list of cameras, along with the detectors, etc.
 

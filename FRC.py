@@ -3,7 +3,8 @@ import json
 import sys
 import time
 
-import ConfigManager
+import ConfigManager as cm
+
 
 usingNTCore = False
 try:
@@ -24,28 +25,6 @@ try:
 except ImportError:
     cscoreAvailable = False
 
-ROMI_FILE = "/boot/romi.json"   # used when running on a Romi robot
-FRC_FILE = "/boot/frc.json"     # Some camera settings incuding laser power
-NN_FILE = "/boot/nn.json"       # NN config file
-MV_FILE = "/boot/mv.json"       # MonsterVision Configuration file
-
-
-# TODO - move to config file
-
-CAMERA_FPS = 25
-DS_SUBSAMPLING = 4
-PREVIEW_WIDTH = 200
-PREVIEW_HEIGHT = 200
-DS_SCALE = 0.5         # Amount to scale down the composite image before sending to DS
-
-def extract_value(j, key, default=None, message=None):
-    try:
-        return j[key]
-    except KeyError:
-        if message is not None:
-            print("config error in '" + FRC_FILE + "': " + message)
-        return default
-    
 
 
 class FRC:
@@ -56,8 +35,6 @@ class FRC:
         # onRobot really should be called "headless".  It means there's no graphics capability on the underlying hardware
 
         self.onRobot = platform.uname().node == "wpilibpi"
-
-        self.frcConfig = ConfigManager.FRCConfig(FRC_FILE)
 
 
         # NetworkTable Instance holder; Initialized below
@@ -75,12 +52,12 @@ class FRC:
             self.ntinst = NetworkTablesInstance.getDefault() # Create a NetworkTable Instance
 
         # Sets up the NT depending on config
-        if self.frcConfig.server:
+        if cm.frcConfig.server:
             print("Setting up NetworkTables server")
             self.ntinst.startServer()
         else:
-            print("Setting up NetworkTables client for team {}".format(self.frcConfig.team))
-            self.ntinst.startClientTeam(self.frcConfig.team)
+            print("Setting up NetworkTables client for team {}".format(cm.frcConfig.team))
+            self.ntinst.startClientTeam(cm.frcConfig.team)
             self.ntinst.startDSClient()
 
         if usingNTCore:
@@ -93,18 +70,18 @@ class FRC:
         if cscoreAvailable:
             # self.cs = CameraServer.getInstance()
             CameraServer.enableLogging()
-            self.csoutput = CameraServer.putVideo("MonsterVision", PREVIEW_WIDTH, PREVIEW_HEIGHT) # TODOnot        
+            self.csoutput = CameraServer.putVideo("MonsterVision", self.mvConfig.PREVIEW_WIDTH, self.mvConfig.PREVIEW_HEIGHT) # TODOnot        
 
 
     # Return True if we're running on Romi.  False if we're a coprocessor on a big 'bot
     # Never used but checks if the files exists
     def is_romi(self):
         try:
-            with open(self.ROMI_FILE, "rt", encoding="utf-8") as f:
+            with open(cm.ROMI_FILE, "rt", encoding="utf-8") as f:
                 json.load(f)
                 # j = json.load(f)
         except OSError as err:
-            print("Could not open '{}': {}".format(self.ROMI_FILE, err), file=sys.stderr)
+            print("Could not open '{}': {}".format(cm.ROMI_FILE, err), file=sys.stderr)
             return False
         return True
 
@@ -135,7 +112,7 @@ class FRC:
         if cscoreAvailable:
             self.frame_counter += 1
 
-            if self.frame_counter % DS_SUBSAMPLING == 0:
+            if self.frame_counter % self.mvConfig.DS_SUBSAMPLING == 0:
                 images = []
                 for camTuple in cams:
                     cam = camTuple[0]
@@ -148,6 +125,6 @@ class FRC:
                     else:
                         img = images[0]
 
-                    dim = (int(img.shape[1] * DS_SCALE) , int(img.shape[0] * DS_SCALE))
+                    dim = (int(img.shape[1] * self.mvConfig.DS_SCALE) , int(img.shape[0] * self.mvConfig.DS_SCALE))
                     resized = cv2.resize(img, dim)
                     self.csoutput.putFrame(resized)
