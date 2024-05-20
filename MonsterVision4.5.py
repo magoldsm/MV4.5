@@ -118,6 +118,8 @@ with contextlib.ExitStack() as stack:
 
                 # If the camera has a detection object, process the detections
 
+                objects = []
+
                 if detector is not None and cam.detections is not None and len(cam.detections) != 0:
                     objects = detector.processDetections(cam.detections, cam.frame, cam.depthFrameColor)
 
