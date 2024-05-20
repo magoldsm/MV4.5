@@ -112,7 +112,7 @@ class FRC:
         if cscoreAvailable:
             self.frame_counter += 1
 
-            if self.frame_counter % self.mvConfig.DS_SUBSAMPLING == 0:
+            if self.frame_counter % cm.mvConfig.DS_SUBSAMPLING == 0:
                 images = []
                 for camTuple in cams:
                     cam = camTuple[0]
@@ -125,6 +125,6 @@ class FRC:
                     else:
                         img = images[0]
 
-                    dim = (int(img.shape[1] * self.mvConfig.DS_SCALE) , int(img.shape[0] * self.mvConfig.DS_SCALE))
+                    dim = (int(img.shape[1] * cm.mvConfig.DS_SCALE) , int(img.shape[0] * cm.mvConfig.DS_SCALE))
                     resized = cv2.resize(img, dim)
                     self.csoutput.putFrame(resized)
