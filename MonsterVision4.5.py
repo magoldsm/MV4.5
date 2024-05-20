@@ -10,6 +10,7 @@ import CameraPipeline as capPipe
 from Detections import Detections
 from AprilTag5 import AprilTag
 from FRC import FRC
+import ConfigManager
 
 # Stuff that may change from year to year
 # Ideally, this would be in a config file
