@@ -45,7 +45,6 @@ def printDeviceInfo(devInfo: dai.DeviceInfo):
 
 
 with contextlib.ExitStack() as stack:
-    frc = FRC()
     deviceInfos = dai.Device.getAllAvailableDevices()
 
     oakCameras = []
