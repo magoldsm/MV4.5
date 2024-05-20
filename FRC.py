@@ -27,6 +27,7 @@ except ImportError:
 ROMI_FILE = "/boot/romi.json"   # used when running on a Romi robot
 FRC_FILE = "/boot/frc.json"     # Some camera settings incuding laser power
 NN_FILE = "/boot/nn.json"       # NN config file
+MV_FILE = "/boot/mv.json"       # MonsterVision Configuration file
 
 
 # TODO - move to config file
@@ -132,18 +133,21 @@ class FRC:
         # First, enumerate the images
 
         if cscoreAvailable:
-            images = []
-            for camTuple in cams:
-                cam = camTuple[0]
-                if cam.frame is not None:
-                    images.append(cam.frame)
+            self.frame_counter += 1
 
-            if len(images) > 0:
-                if len(images) > 1:
-                    img = cv2.hconcat(images)
-                else:
-                    img = images[0]
+            if self.frame_counter % DS_SUBSAMPLING == 0:
+                images = []
+                for camTuple in cams:
+                    cam = camTuple[0]
+                    if cam.frame is not None:
+                        images.append(cam.frame)
 
-                dim = (int(img.shape[1] * DS_SCALE) , int(img.shape[0] * DS_SCALE))
-                resized = cv2.resize(img, dim)
-                self.csoutput.putFrame(resized)
+                if len(images) > 0:
+                    if len(images) > 1:
+                        img = cv2.hconcat(images)
+                    else:
+                        img = images[0]
+
+                    dim = (int(img.shape[1] * DS_SCALE) , int(img.shape[0] * DS_SCALE))
+                    resized = cv2.resize(img, dim)
+                    self.csoutput.putFrame(resized)

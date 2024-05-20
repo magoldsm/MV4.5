@@ -139,7 +139,7 @@ with contextlib.ExitStack() as stack:
 
                 frc.writeObjectsToNetworkTable(objects, cam)
 
-        frc.sendResultsToDS(oakCameras)
+                frc.sendResultsToDS(oakCameras)
 
         # This won't work in the final version, but it's a way to exit the program
 
