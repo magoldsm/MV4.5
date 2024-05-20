@@ -124,7 +124,7 @@ with contextlib.ExitStack() as stack:
                 # If the camera has an AprilTag object, detect any AprilTags that might be seen
 
                 if tagDetector is not None and cam.frame is not None:
-                    tagDetector.detect(cam.frame, cam.depthFrame)
+                    objects.extend(tagDetector.detect(cam.frame, cam.depthFrame))
 
                     cv2.putText(cam.frame, "fps: {:.2f}".format(cam.fps), (2, cam.frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
                     (255, 255, 255))
@@ -132,6 +132,12 @@ with contextlib.ExitStack() as stack:
                 # Display the results to the GUI and push frames to the camera server
                 
                 frc.displayCamResults(cam)
+
+                # Write the objects to the Network Table
+
+                frc.writeObjectsToNetworkTable(objects, cam)
+
+        frc.sendResultsToDS(oakCameras)
 
         # This won't work in the final version, but it's a way to exit the program
 
