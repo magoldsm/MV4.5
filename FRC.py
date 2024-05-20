@@ -70,7 +70,7 @@ class FRC:
         if cscoreAvailable:
             # self.cs = CameraServer.getInstance()
             CameraServer.enableLogging()
-            self.csoutput = CameraServer.putVideo("MonsterVision", self.mvConfig.PREVIEW_WIDTH, self.mvConfig.PREVIEW_HEIGHT) # TODOnot        
+            self.csoutput = CameraServer.putVideo("MonsterVision", cm.mvConfig.PREVIEW_WIDTH, cm.mvConfig.PREVIEW_HEIGHT) # TODOnot        
 
 
     # Return True if we're running on Romi.  False if we're a coprocessor on a big 'bot
