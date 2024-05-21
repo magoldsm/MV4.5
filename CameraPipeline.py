@@ -54,6 +54,7 @@ class CameraPipeline:
         self.frame = None
         self.depthFrame = None
         self.frame = None
+        self.previewFrame = None
         self.detections = None
         self.depthFrameColor = None
         self.cameraIntrinsics = None
@@ -180,6 +181,13 @@ class CameraPipeline:
         self.xoutRgb = self.pipeline.create(dai.node.XLinkOut)
         self.xoutRgb.setStreamName("rgb")
 
+        if cm.mvConfig.showPreview and cm.frcConfig.hasDisplay:
+            self.xoutPreview = self.pipeline.create(dai.node.XLinkOut)
+            self.xoutPreview.setStreamName("preview")
+            self.camRgb.preview.link(self.xoutPreview.input) # Link the camera's preview output to the xLink preview output node
+        else:
+            self.xoutPreview = None
+
         if self.hasDepth:
             self.monoLeft = self.pipeline.create(dai.node.MonoCamera)
             self.monoRight = self.pipeline.create(dai.node.MonoCamera)
@@ -305,6 +313,10 @@ class CameraPipeline:
             depthQueue = self.device.getOutputQueue(name="depth", maxSize=4, blocking=False)
             self.queues.append((depthQueue, "depth"))
 
+            if self.xoutPreview is not None:
+                previewQueue = self.device.getOutputQueue(name="preview", maxSize=4, blocking=False)
+                self.queues.append((previewQueue, "preview"))
+
             if self.hasLaser:
                 if not self.device.setIrLaserDotProjectorBrightness(cm.frcConfig.LaserDotProjectorCurrent):
                     print("Projector Fail")
@@ -327,6 +339,8 @@ class CameraPipeline:
                         depthChanged = True
                     case "rgb":
                         self.frame = q.get().getCvFrame()
+                    case "preview":
+                        self.previewFrame = q.get().getCvFrame()
                     case "detectionNN":
                         self.detections = q.get().detections
         

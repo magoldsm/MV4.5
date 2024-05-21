@@ -62,16 +62,23 @@ with contextlib.ExitStack() as stack:
 
         # In this sample code, we connect to every camera we find
 
-        print("===Connected to ", mxId)
+        # See if the camera has a friendly name in the config file.  If not, use the MXID
+
+        try:
+            camName = cm.mvConfig.getCamera(mxId)['name']
+        except:
+            camName = mxId
+               
+        print("===Connected to ", camName)
 
         # Here we can customize the NN being used on the camera
         # You can have different NN's on each camera (or none)
 
         # Even if the camera supports depth, you can force it to not use depth
-               
-        # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=False, nnFile="/boot/nn.json")
-        cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=True, nnFile="/boot/nn.json")
-        # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=None, nnFile=None)
+
+        # cam1 = capPipe.CameraPipeline(camName, deviceInfo, useDepth=False, nnFile="/boot/nn.json")
+        cam1 = capPipe.CameraPipeline(camName, deviceInfo, useDepth=True, nnFile="/boot/nn.json")
+        # cam1 = capPipe.CameraPipeline(ccamName, deviceInfo, useDepth=None, nnFile=None)
 
         # This is where the camera is set up and the pipeline is built
         # First, create the Spatial Detection Network (SDN) object

@@ -102,6 +102,7 @@ class MVConfig(ConfigManager):
     __PREVIEW_HEIGHT = ComputedValue(200)
     __DS_SCALE = ComputedValue(0.5)
     __cameras = ComputedValue([])
+    __showPreview = ComputedValue(False)
 
     __table = [
         { "name" : "cameras", "value" : __cameras, "mess" : None},
@@ -111,7 +112,8 @@ class MVConfig(ConfigManager):
         { "name" : "DS_SUBSAMPLING", "value" : __DS_SUBSAMPLING, "mess" : None},
         { "name" : "PREVIEW_WIDTH", "value" : __PREVIEW_WIDTH, "mess" : None},
         { "name" : "PREVIEW_HEIGHT", "value" : __PREVIEW_HEIGHT, "mess" : None},
-        { "name" : "DS_SCALE", "value" : __DS_SCALE, "mess" : None}
+        { "name" : "DS_SCALE", "value" : __DS_SCALE, "mess" : None},
+        { "name" : "showPreview", "value" : __showPreview, "mess" : None}
     ]
 
     def __init__(self, file: str):
@@ -126,6 +128,7 @@ class MVConfig(ConfigManager):
             self.PREVIEW_WIDTH = self.__PREVIEW_WIDTH.value
             self.PREVIEW_HEIGHT = self.__PREVIEW_HEIGHT.value
             self.DS_SCALE = self.__DS_SCALE.value
+            self.showPreview = self.__showPreview.value
 
     def getCamera(self, mxid) -> dict:
         for cam in self.cameras:

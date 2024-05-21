@@ -103,6 +103,8 @@ class FRC:
             #     cv2.imshow(cam.name + " ISP", cam.ispFrame) 
             if cam.depthFrameColor is not None:
                 cv2.imshow(cam.name + " depth", cam.depthFrameColor)
+            if cam.previewFrame is not None:
+                cv2.imshow(cam.name + " preview", cam.previewFrame)
 
 
     # Composite all camera images into a single frame for DS display
