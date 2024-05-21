@@ -102,12 +102,19 @@ class Detections:
 
             cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), 255, cv2.FONT_HERSHEY_SCRIPT_SIMPLEX)
 
-            # Denormalize bounding box.  Coordinates in pixels on "detections" frame
+            # # Denormalize bounding box.  Coordinates in pixels on "detections" frame
 
-            x1 = int(detection.xmin * width)
-            x2 = int(detection.xmax * width)
-            y1 = int(detection.ymin * height)
-            y2 = int(detection.ymax * height)
+            # x1 = int(detection.xmin * width)
+            # x2 = int(detection.xmax * width)
+            # y1 = int(detection.ymin * height)
+            # y2 = int(detection.ymax * height)
+
+            # Assume the frame and depthFrameColor are the same size....
+
+            x1 = xmin
+            x2 = xmax
+            y1 = ymin
+            y2 = ymax
 
             try:
                 label = self.LABELS[detection.label]

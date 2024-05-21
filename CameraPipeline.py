@@ -53,7 +53,6 @@ class CameraPipeline:
 
         self.frame = None
         self.depthFrame = None
-        # self.ispFrame = None
         self.frame = None
         self.detections = None
         self.depthFrameColor = None
@@ -249,23 +248,12 @@ class CameraPipeline:
 
                 if scaleFactor == 1:
                     spatialDetectionNetwork.passthroughDepth.link(self.xoutDepth.input)
-                    # self.camRgb.isp.link(self.xoutIsp.input)
                 else:
-                    # self.camRgb.isp.link(self.ispScaleNode.inputImage)
-                    # self.ispScaleNode.out.link(self.xoutIsp.input)
-                    spatialDetectionNetwork.passthroughDepth.link(self.depthScaleNode.inputImage)
                     self.depthScaleNode.out.link(self.xoutDepth.input)
             else:
                 self.camRgb.isp.link(self.xoutRgb.input)
                 sizeForIntrinsic = self.camRgb.getIspSize()
                 self.stereo.depth.link(self.xoutDepth.input)
-                # if scaleFactor == 1:
-                #     self.camRgb.isp.link(self.xoutIsp.input)
-                # else:
-                #     self.camRgb.isp.link(self.ispScaleNode.inputImage)
-                #     self.ispScaleNode.out.link(self.xoutIsp.input)
-
-            # self.xoutIsp.setStreamName("isp")
         else:
             self.camRgb.isp.link(self.xoutRgb.input) # If not using a NN then link the camera output directly to the xLink rgb output node
             sizeForIntrinsic = self.camRgb.getIspSize()
@@ -303,7 +291,6 @@ class CameraPipeline:
         if self.hasDepth:
             try:
                 self.calibData = self.device.readCalibration2()
-                print(f"Calibration Data: {self.calibData}")
                 lensPosition = self.calibData.getLensPosition(dai.CameraBoardSocket.RGB)
                 if lensPosition:
                     self.camRgb.initialControl.setManualFocus(lensPosition)
@@ -312,14 +299,11 @@ class CameraPipeline:
                 pass
 
             # Output queues will be used to get the rgb frames and nn data from the outputs defined above
-            previewQueue = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-            self.queues.append((previewQueue, "preview"))
+            rgbQueue = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+            self.queues.append((rgbQueue, "rgb"))
 
             depthQueue = self.device.getOutputQueue(name="depth", maxSize=4, blocking=False)
             self.queues.append((depthQueue, "depth"))
-
-            # ispQueue = self.device.getOutputQueue(name="isp", maxSize=4, blocking=False)
-            # self.queues.append((ispQueue, "isp"))
 
             if self.hasLaser:
                 if not self.device.setIrLaserDotProjectorBrightness(cm.frcConfig.LaserDotProjectorCurrent):
@@ -329,8 +313,6 @@ class CameraPipeline:
             rgbQueue = self.device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
             self.queues.append((rgbQueue, "rgb"))
 
-        # # Start the pipeline
-        # self.device.startPipeline(self.pipeline)
 
     def processNextFrame(self):
         anyChanges = False
@@ -340,13 +322,9 @@ class CameraPipeline:
             if q.has():
                 anyChanges = True
                 match name:
-                    case "preview":
-                        self.frame = q.get().getCvFrame()
                     case "depth":
                         self.depthFrame = q.get().getFrame()
                         depthChanged = True
-                    case "isp":
-                        q.get().getCvFrame()            # TODO get rid of this completely
                     case "rgb":
                         self.frame = q.get().getCvFrame()
                     case "detectionNN":

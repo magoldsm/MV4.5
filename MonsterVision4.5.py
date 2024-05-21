@@ -69,6 +69,7 @@ with contextlib.ExitStack() as stack:
 
         # Even if the camera supports depth, you can force it to not use depth
                
+        # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=False, nnFile="/boot/nn.json")
         cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=True, nnFile="/boot/nn.json")
         # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=None, nnFile=None)
 
