@@ -1,7 +1,8 @@
 {
     "cameras" : [
         { "mxid" : "18443010E1176A1200", "name" : "Front", "invert" : 0 },
-        { "mxid" : "18443010A162011300", "name" : "Rear", "invert" : 0 }
+        { "mxid" : "18443010A162011300", "name" : "Rear", "invert" : 0 },
+        { "mxid" : "1944301001564D1300", "name" : "Eclipse", "invert" : 0 }
     ],
     "tagFamily" : "tag36h11",
     "tagSize" : 0.1651,
@@ -9,7 +10,7 @@
     "DS_SUBSAMPLING" : 4,
     "PREVIEW_WIDTH" : 200,
     "PREVIEW_HEIGHT" : 200,
-    "DS_SCALE" : 0.5
+    "DS_SCALE" : 0.125
 
 
 }

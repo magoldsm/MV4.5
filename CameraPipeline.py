@@ -322,7 +322,7 @@ class CameraPipeline:
             # self.queues.append((ispQueue, "isp"))
 
             if self.hasLaser:
-                if not self.device.setIrLaserDotProjectorBrightness(self.LaserDotProjectorCurrent):
+                if not self.device.setIrLaserDotProjectorBrightness(cm.frcConfig.LaserDotProjectorCurrent):
                     print("Projector Fail")
 
         else:
@@ -345,16 +345,17 @@ class CameraPipeline:
                     case "depth":
                         self.depthFrame = q.get().getFrame()
                         depthChanged = True
-                    # case "isp":
-                    #     self.ispFrame = q.get().getCvFrame()
+                    case "isp":
+                        q.get().getCvFrame()            # TODO get rid of this completely
                     case "rgb":
                         self.frame = q.get().getCvFrame()
                     case "detectionNN":
                         self.detections = q.get().detections
         
-        now = time.time_ns() / 1.0e9
-        self.fps = int(1/(now - self.lastFrameTime))
-        self.lastFrameTime = now
+        if anyChanges:
+            now = time.time_ns() / 1.0e9
+            self.fps = int(1/(now - self.lastFrameTime))
+            self.lastFrameTime = now
 
 
 

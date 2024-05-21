@@ -69,7 +69,8 @@ with contextlib.ExitStack() as stack:
 
         # Even if the camera supports depth, you can force it to not use depth
                
-        cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=True, nnFile="/boot/nn.json")
+        # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=True, nnFile="/boot/nn.json")
+        cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=None, nnFile=None)
 
         # This is where the camera is set up and the pipeline is built
         # First, create the Spatial Detection Network (SDN) object
@@ -97,7 +98,8 @@ with contextlib.ExitStack() as stack:
 
         oakCameras.append((cam1, mxId, detector, tagDetector))
 
-
+        oakCameras = []
+        
     while True:
         cam : capPipe
 
@@ -123,6 +125,9 @@ with contextlib.ExitStack() as stack:
 
                     cv2.putText(cam.frame, "fps: {:.2f}".format(cam.fps), (2, cam.frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4,
                     (255, 255, 255))
+
+                res = frc.sd.putString("ObjectTracker-fps", "fps : {:.2f}".format(cam.fps))
+                res = frc.ntinst.flush() # Puts all values onto table immediately
 
                 # Display the results to the GUI and push frames to the camera server
                 

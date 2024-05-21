@@ -57,7 +57,8 @@ class FRC:
             self.ntinst.startServer()
         else:
             print("Setting up NetworkTables client for team {}".format(cm.frcConfig.team))
-            self.ntinst.startClientTeam(cm.frcConfig.team)
+            self.ntinst.startClient4("Eclipse")
+            self.ntinst.setServerTeam(cm.frcConfig.team)
             self.ntinst.startDSClient()
 
         if usingNTCore:
