@@ -34,7 +34,7 @@ class CameraPipeline:
         # TODO move these to config file
 
         # We might not have a mono camera, but this cannot hurt
-        self.monoResolution = dai.MonoCameraProperties.SensorResolution.THE_480_P
+        self.monoResolution = dai.MonoCameraProperties.SensorResolution.THE_720_P
         self.monoWidth = 1280
         self.monoHeight = 720
 

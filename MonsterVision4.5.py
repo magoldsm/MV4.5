@@ -69,8 +69,8 @@ with contextlib.ExitStack() as stack:
 
         # Even if the camera supports depth, you can force it to not use depth
                
-        # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=True, nnFile="/boot/nn.json")
-        cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=None, nnFile=None)
+        cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=True, nnFile="/boot/nn.json")
+        # cam1 = capPipe.CameraPipeline(cm.mvConfig.getCamera(mxId)['name'], deviceInfo, useDepth=None, nnFile=None)
 
         # This is where the camera is set up and the pipeline is built
         # First, create the Spatial Detection Network (SDN) object
@@ -98,8 +98,7 @@ with contextlib.ExitStack() as stack:
 
         oakCameras.append((cam1, mxId, detector, tagDetector))
 
-        oakCameras = []
-        
+      
     while True:
         cam : capPipe
 
