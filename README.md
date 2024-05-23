@@ -6,9 +6,9 @@ This should run on either RPi4 or RPI5.  I haven't tested on a RPi4.
 
 | File | Description |
 | --- | --- |
-| /boot/frc.json | Contains configuration data maintained by the WPILibPi web interface |
-| /boot/nn.json | Contains model-specific configuration data for the NN |
-| /boot/mv.json | Contains MonsterVision-specific configuration data |
+| /boot/frc.json | Contains configuration data maintained by the WPILibPi web interface.  There is no need to modify this file manually. |
+| /boot/nn.json | Contains model-specific configuration data for the NN.  Copy this file from the appropriate JSON file found in the `model` direactory. |
+| /boot/mv.json | Contains MonsterVision-specific configuration data. |
 
 ## mv.json
 
