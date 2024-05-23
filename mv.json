@@ -10,7 +10,7 @@
     "DS_SUBSAMPLING" : 4,
     "PREVIEW_WIDTH" : 200,
     "PREVIEW_HEIGHT" : 200,
-    "DS_SCALE" : 0.125,
+    "DS_SCALE" : 0.5,
     "showPreview" : 1
 
 
