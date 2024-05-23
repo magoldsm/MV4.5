@@ -30,9 +30,11 @@ class ComputedValue:
 #   mess: a ComputedValue object that will be set to a message if the value is not found in the JSON file
 
 
+
+
 class ConfigManager:
 
-    def __init__(self, file: str, configTable):
+    def __init__(self, file: str, configTable, drillDown : str = None):
         self.file = file
         self.success = False
 
@@ -45,6 +47,9 @@ class ConfigManager:
         # top level must be an object
         if not isinstance(j, dict):
             raise Exception("must be JSON object")
+
+        if drillDown is not None:
+            j = j[drillDown]
         
         for entry in configTable:
        
@@ -92,6 +97,28 @@ class FRCConfig (ConfigManager):
 
             
 
+class NNConfig(ConfigManager):
+
+    __bb_fraction = ComputedValue("bb_fraction")
+    __inputSize = ComputedValue((300, 300))
+    __NNFamily = ComputedValue("")
+
+    __table = [
+        { "name" : "bb_fraction", "value" : __bb_fraction, "mess" : None},
+        { "name" : "input_size", "value" : __inputSize, "mess" : None},
+        { "name" : "NN_family", "value" : __NNFamily, "mess" : None}
+    ]
+
+    def __init__(self, file: str):
+        super().__init__( file, self.__table, "nn_config")
+
+        if self.success:
+            self.bb_fraction = self.__bb_fraction.value
+            self.inputSize = tuple(map(int, self.__inputSize.value.split('x')))
+            self.NNFamily = self.__NNFamily.value
+
+    
+
 class MVConfig(ConfigManager):
 
     __tagFamily = ComputedValue("tag36h11")
@@ -103,6 +130,7 @@ class MVConfig(ConfigManager):
     __DS_SCALE = ComputedValue(0.5)
     __cameras = ComputedValue([])
     __showPreview = ComputedValue(False)
+
 
     __table = [
         { "name" : "cameras", "value" : __cameras, "mess" : None},
@@ -139,4 +167,4 @@ class MVConfig(ConfigManager):
 
 frcConfig = FRCConfig(FRC_FILE)
 mvConfig = MVConfig(MV_FILE)
-
+nnConfig = NNConfig(NN_FILE)
