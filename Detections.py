@@ -45,18 +45,31 @@ class Detections:
         objects = []
 
         for detection in detections:
+            # Get the detection bounding box (in % coordinates), and denormalize it to the NN frame coordinates.
+            detectionBB = dai.Rect(dai.Point2f(detection.xmin, detection.ymin), dai.Point2f(detection.xmax, detection.ymax))
+            roiDenorm = detectionBB.denormalize(cm.nnConfig.inputSize[0], cm.nnConfig.inputSize[1])
+            
+            # Now map the denormalized bounding box to the full frame coordinates
+            roiMapped = mapDetectionCoordinatesToFrame(roiDenorm, cm.nnConfig.inputSize, frame.shape)
+            topLeft = roiMapped.topLeft()
+            bottomRight = roiMapped.bottomRight()
+            xmin = int(topLeft.x)
+            ymin = int(topLeft.y)
+            xmax = int(bottomRight.x)
+            ymax = int(bottomRight.y)
+
+            # From this point on, everything is in RGB Frame (frame) coordinates
+
             # Find center of bounding box
 
-            cX = (detection.xmin + detection.xmax) / 2
-            cY = (detection.ymin + detection.ymax) / 2
-            R = max((detection.xmax - detection.xmin)*width, (detection.ymax - detection.ymin)*height) / (2*width)
+            cX = (xmin + xmax) / 2
+            cY = (ymin + ymax) / 2
+            R = max((xmax - xmin), (ymax - ymin)) /2
 
-            # Denormalize bounding box.  Coordinates in pixels on frame
-
-            x1 = int(detection.xmin * width)
-            x2 = int(detection.xmax * width)
-            y1 = int(detection.ymin * height)
-            y2 = int(detection.ymax * height)
+            x1 = xmin
+            x2 = xmax
+            y1 = ymin
+            y2 = ymax
 
             try:
                 label = self.LABELS[detection.label]
@@ -74,12 +87,12 @@ class Detections:
             cv2.putText(frame, str(label), (x1 + 10, y1 + 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
             cv2.putText(frame, "{:.2f}".format(detection.confidence * 100), (x1 + 10, y1 + 35),
                         cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            cv2.putText(frame, f"X: {round(cX, 3)} in", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            cv2.putText(frame, f"Y: {round(cY,3)} in", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-            cv2.putText(frame, f"R: {round(R, 3)} in", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(frame, f"X: {round(cX, 3)} px", (x1 + 10, y1 + 50), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(frame, f"Y: {round(cY, 3)} px", (x1 + 10, y1 + 65), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
+            cv2.putText(frame, f"R: {round(R, 3)} px", (x1 + 10, y1 + 80), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
 
-            cv2.circle(frame, (int(cX*width), int(cY*height)), 5, (0, 0, 255), -1)
-            cv2.circle(frame, (int(cX*width), int(cY*height)), int(R*width), (255, 0, 0), 2)
+            cv2.circle(frame, (int(cX), int(cY)), 5, (0, 0, 255), -1)
+            cv2.circle(frame, (int(cX), int(cY)), int(R), (255, 0, 0), 2)
 
             # cv2.rectangle(self.frame, (x1, y1), (x2, y2), color, cv2.FONT_HERSHEY_SIMPLEX)
 
