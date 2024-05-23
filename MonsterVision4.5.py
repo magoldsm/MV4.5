@@ -88,7 +88,7 @@ with contextlib.ExitStack() as stack:
         # You can have different NN's on each camera (or none)
 
         # Even if the camera supports depth, you can force it to not use depth
-
+        print(f"Using depth: {useDepth}    NN file: {nnFile}")
         cam1 = capPipe.CameraPipeline(camName, deviceInfo, useDepth, nnFile)
 
         # This is where the camera is set up and the pipeline is built
