@@ -276,10 +276,10 @@ class CameraPipeline:
         return
     
 
-    def serializePipeline(self):
+    def serializePipeline(self, filename: str):
         serialized = self.pipeline.serializeToJson()
 
-        with open("pipeline_config.json", "w") as f:
+        with open(filename, "w") as f:
             json.dump(serialized, f, indent=4)
         return
 

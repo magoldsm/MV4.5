@@ -1,8 +1,8 @@
 {
     "cameras" : [
-        { "mxid" : "18443010E1176A1200", "name" : "Front", "invert" : 0, "useDepth" : 1, "nnFile" : "/boot/nn.json" },
-        { "mxid" : "18443010A162011300", "name" : "Rear", "invert" : 0, "useDepth" : 1, "nnFile" : "/boot/nn.json" },
-        { "mxid" : "1944301001564D1300", "name" : "Eclipse", "invert" : 0, "useDepth" : 0, "nnFile" : "/boot/nn.json" }
+        { "mxid" : "18443010E1176A1200", "name" : "Front", "invert" : 0, "useDepth" : 1, "nnFile" : "/boot/nn.json", "dumpPipeline" : 0 },
+        { "mxid" : "18443010A162011300", "name" : "Rear", "invert" : 0, "useDepth" : 1, "nnFile" : "/boot/nn.json", "dumpPipeline" : 0 },
+        { "mxid" : "1944301001564D1300", "name" : "Eclipse", "invert" : 0, "useDepth" : 0, "nnFile" : "/boot/nn.json", "dumpPipeline" : 0 }
     ],
     "tagFamily" : "tag36h11",
     "tagSize" : 0.1651,

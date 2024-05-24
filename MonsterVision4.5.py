@@ -84,6 +84,11 @@ with contextlib.ExitStack() as stack:
         except:
             nnFile = None
 
+        try:
+            dumpPipeline = cameraConfig['dumpPipeline']
+        except:
+            dumpPipeline = False
+
         # Here we can customize the NN being used on the camera
         # You can have different NN's on each camera (or none)
 
@@ -100,9 +105,11 @@ with contextlib.ExitStack() as stack:
 
         cam1.buildPipeline(sdn, cm.mvConfig.getCamera(mxId)['invert'])
 
-        # Serialize the pipeline
+        # Serialize the pipeline, if requested
 
-        # cam1.serializePipeline()
+        if dumpPipeline:
+            filename = camName + ".json"
+            cam1.serializePipeline(filename)
 
         # Start the pipeline
 
